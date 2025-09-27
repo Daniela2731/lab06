@@ -39,22 +39,23 @@ fun MainNavigation() {
     ) {
         composable("home") { CustomScaffold(navController) }
         composable("profile") { ProfileScreen(navController) }
+        composable("settings") { SettingsScreen(navController) }
+        composable("star") { StarScreen(navController) }
+        composable("close") { CloseScreen(navController) }
     }
 }
 
 @Composable
 fun CustomScaffold(navController: NavHostController) {
-    // Estado del contador (se guarda aunque cambie la composición)
+    // 👉 Estado del contador
     var clickCount by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = { CustomTopBar(navController) },
-        floatingActionButton = {
-            CustomFAB { clickCount++ }
-        },
-        bottomBar = { CustomBottomBar() }
+        floatingActionButton = { CustomFAB { clickCount++ } }, // cada clic aumenta contador
+        bottomBar = { CustomBottomBar(navController) }
     ) { padding ->
-        CustomContent(padding, clickCount)
+        CustomContent(padding, clickCount) // mostramos el contador
     }
 }
 
@@ -63,14 +64,14 @@ fun CustomScaffold(navController: NavHostController) {
 fun CustomTopBar(navController: NavHostController) {
     TopAppBar(
         navigationIcon = {
-            IconButton(onClick = { /* abrir drawer si lo implementas */ }) {
-                Icon(imageVector = Icons.Filled.Menu, contentDescription = "Menú")
+            IconButton(onClick = { navController.navigate("settings") }) {
+                Icon(imageVector = Icons.Filled.Settings, contentDescription = "Configuración")
             }
         },
         title = { Text(text = "Mi Aplicación") },
         actions = {
-            IconButton(onClick = { /* búsqueda */ }) {
-                Icon(imageVector = Icons.Filled.Search, contentDescription = "Buscar")
+            IconButton(onClick = { navController.navigate("star") }) {
+                Icon(imageVector = Icons.Filled.Star, contentDescription = "Favoritos")
             }
             IconButton(onClick = { navController.navigate("profile") }) {
                 Icon(imageVector = Icons.Filled.AccountCircle, contentDescription = "Perfil")
@@ -82,12 +83,15 @@ fun CustomTopBar(navController: NavHostController) {
 @Composable
 fun CustomFAB(onClick: () -> Unit) {
     FloatingActionButton(onClick = onClick) {
-        Text("+", fontSize = 20.sp, modifier = Modifier.padding(6.dp))
+        Text(
+            fontSize = 24.sp,
+            text = "+"
+        )
     }
 }
 
 @Composable
-fun CustomBottomBar() {
+fun CustomBottomBar(navController: NavHostController) {
     BottomAppBar {
         Row(
             modifier = Modifier
@@ -96,17 +100,17 @@ fun CustomBottomBar() {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { println("Build") }) {
-                Icon(Icons.Filled.Build, contentDescription = "Build")
+            IconButton(onClick = { navController.navigate("settings") }) {
+                Icon(Icons.Filled.Settings, contentDescription = "Configuración")
             }
-            IconButton(onClick = { println("Menu") }) {
-                Icon(Icons.Filled.Menu, contentDescription = "Menu")
+            IconButton(onClick = { navController.navigate("home") }) {
+                Icon(Icons.Filled.Home, contentDescription = "Inicio")
             }
-            IconButton(onClick = { println("Favorite") }) {
-                Icon(Icons.Filled.Favorite, contentDescription = "Favorite")
+            IconButton(onClick = { navController.navigate("star") }) {
+                Icon(Icons.Filled.Star, contentDescription = "Favoritos")
             }
-            IconButton(onClick = { println("Delete") }) {
-                Icon(Icons.Filled.Delete, contentDescription = "Delete")
+            IconButton(onClick = { navController.navigate("close") }) {
+                Icon(Icons.Filled.Close, contentDescription = "Cerrar Sesión")
             }
         }
     }
@@ -114,16 +118,13 @@ fun CustomBottomBar() {
 
 @Composable
 fun CustomContent(padding: PaddingValues, clickCount: Int) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = "My app content", fontSize = 18.sp)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Has presionado el botón $clickCount veces")
+        Text(text = "Has presionado el botón $clickCount veces", fontSize = 18.sp)
     }
 }
 
@@ -158,6 +159,57 @@ fun ProfileScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Nombre: Juan Pérez", fontSize = 18.sp)
             Text(text = "Email: juan.perez@example.com", fontSize = 16.sp)
+        }
+    }
+}
+
+/* === NUEVAS VISTAS === */
+
+@Composable
+fun SettingsScreen(navController: NavHostController) {
+    ScreenTemplate("Pantalla de Configuración", navController, Icons.Filled.Settings)
+}
+
+@Composable
+fun StarScreen(navController: NavHostController) {
+    ScreenTemplate("Pantalla de Favoritos", navController, Icons.Filled.Star)
+}
+
+@Composable
+fun CloseScreen(navController: NavHostController) {
+    ScreenTemplate("Pantalla de Cerrar Sesión", navController, Icons.Filled.Close)
+}
+
+/* Reutilizamos un mismo diseño */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ScreenTemplate(title: String, navController: NavHostController, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(title) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Volver")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(120.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = title, fontSize = 20.sp)
         }
     }
 }
